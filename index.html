@@ -1,0 +1,241 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>FAQ Chat Widget</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: transparent;
+    }
+
+    #chat-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      background-color: #132B45;
+      color: white;
+      font-size: 28px;
+      border: none;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      cursor: pointer;
+      z-index: 9999;
+    }
+
+    #chat-widget {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      width: 380px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      animation: fadeIn 0.3s ease-in-out;
+      z-index: 9998;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-header {
+      background: #132B45;
+      color: white;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chat-header .status {
+      font-size: 12px;
+      color: #c0e3ff;
+    }
+
+    .chat-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .chat-body {
+      padding: 16px;
+      background: #f9f9f9;
+    }
+
+    .faq-category {
+      font-weight: bold;
+      margin: 10px 0 4px;
+    }
+
+    .faq-button {
+      background: #ffffff;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .faq-button:hover {
+      background: #f0f0f0;
+    }
+
+    .chat-log {
+      padding: 0 0 0 48px;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 12px;
+    }
+
+    .chat-message {
+      margin: 8px 0;
+      position: relative;
+    }
+
+    .chat-user, .chat-bot {
+      display: block;
+      background: #e8f0f8;
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 80%;
+    }
+
+    .chat-user {
+      background: #d3e6f2;
+      margin-left: auto;
+    }
+
+    .avatar {
+      position: absolute;
+      left: -40px;
+      top: 0;
+      width: 32px;
+      height: 32px;
+      background: url('https://avatars.githubusercontent.com/u/9919?s=40&v=4') no-repeat center;
+      background-size: cover;
+      border-radius: 50%;
+    }
+
+    #faq-input {
+      width: calc(100% - 32px);
+      margin: 10px 16px 0 16px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    #faq-send {
+      margin: 10px 16px 16px 16px;
+      width: calc(100% - 32px);
+      padding: 10px;
+      background: #132B45;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+
+<button id="chat-button">?</button>
+
+<div id="chat-widget">
+  <div class="chat-header">
+    FAQ и поддержка
+    <button class="chat-close" onclick="chatBox.style.display='none'">×</button>
+  </div>
+  <div class="chat-body">
+    <div class="status">Онлайн • Оператор доступен</div>
+
+    <div class="faq-category">🔹 Доступ</div>
+    <button class="faq-button" onclick="ask('Как зайти в LMS?')">Как зайти в LMS?</button>
+
+    <div class="faq-category">🔹 Ошибки</div>
+    <button class="faq-button" onclick="ask('Курс не открывается')">Курс не открывается</button>
+
+    <div class="faq-category">🔹 Организация</div>
+    <button class="faq-button" onclick="ask('Где расписание обучения?')">Где расписание обучения?</button>
+
+    <div class="chat-log" id="chat-log"></div>
+
+    <input id="faq-input" type="text" placeholder="Задать свой вопрос..." />
+    <a id="faq-send" href="#" target="_blank">Отправить вопрос</a>
+  </div>
+</div>
+
+<script>
+  const toggleBtn = document.getElementById('chat-button');
+  const chatBox = document.getElementById('chat-widget');
+  const chatLog = document.getElementById('chat-log');
+  const faqInput = document.getElementById('faq-input');
+  const faqSend = document.getElementById('faq-send');
+  const SUPPORT_EMAIL = 'elearning@airastana.com';
+
+  const answers = {
+    'Как зайти в LMS?': 'Зайдите с помощью корпоративной почты и пароля. Если не получается — обратитесь к вашему менеджеру.',
+    'Курс не открывается': 'Убедитесь, что вы используете Google Chrome. Если проблема остаётся — напишите нам.',
+    'Где расписание обучения?': 'В разделе “Календарь” на главной странице LMS.'
+  };
+
+  toggleBtn.onclick = () => {
+    chatBox.style.display = (chatBox.style.display === 'none' || chatBox.style.display === '') ? 'flex' : 'none';
+  };
+
+  function ask(question) {
+    const userMsg = document.createElement('div');
+    userMsg.className = 'chat-message';
+    userMsg.innerHTML = `<div class="chat-user">${question}</div>`;
+    chatLog.appendChild(userMsg);
+
+    const botMsg = document.createElement('div');
+    botMsg.className = 'chat-message';
+    botMsg.innerHTML = `<div class="avatar"></div><div class="chat-bot">${answers[question] || 'Извините, у меня нет ответа на этот вопрос.'}</div>`;
+    chatLog.appendChild(botMsg);
+
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  faqInput.addEventListener('input', () => {
+    const msg = faqInput.value.trim();
+    const mailBody = `Пожалуйста, опишите вашу проблему по следующей форме:
+
+1. Что именно не работает или вызывает вопрос?
+2. Когда возникла проблема (дата/время)?
+3. С какого устройства или браузера?
+4. Ваши действия до ошибки?
+5. Пример скриншота или номер курса (если есть):
+
+Ваш вопрос:
+${msg}`;
+
+    const mailLink = `mailto:${SUPPORT_EMAIL}?subject=Вопрос из LMS&body=${encodeURIComponent(mailBody)}`;
+    faqSend.href = mailLink;
+  });
+</script>
+
+</body>
+</html>
